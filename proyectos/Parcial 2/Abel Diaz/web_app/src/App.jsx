@@ -5,7 +5,7 @@ import abi from './abi/Marketplace.json';
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
 const IPFS_GATEWAY = "https://white-dear-jaguar-287.mypinata.cloud/ipfs/";
-const RPC_URL = "https://rpc.ephemery.dev";
+const RPC_URL = import.meta.env.VITE_RPC_URL;
 
 function App() {
   const [account, setAccount] = useState('');
