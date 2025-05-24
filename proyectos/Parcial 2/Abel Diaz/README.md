@@ -3,7 +3,7 @@
 Este proyecto es una aplicación descentralizada (DApp) que permite **listar, comprar y mintear NFTs** utilizando contratos inteligentes en Solidity y una interfaz web construida con React + Vite.
 
 > ✅ **Contrato desplegado en Ephemery:**  
-> `0xC8f1222925e5bb8e185259648ecA4e9AbbB8fe14`
+> `0x8c547442417dDd339ED6Be936CFF73e92BDd930E`
 
 ---
 
@@ -31,7 +31,7 @@ Crea un archivo `.env` con:
 
 ```
 VITE_RPC_URL=https://otter.bordel.wtf/erigon
-VITE_CONTRACT_ADDRESS=0xC8f1222925e5bb8e185259648ecA4e9AbbB8fe14
+VITE_CONTRACT_ADDRESS=0x8c547442417dDd339ED6Be936CFF73e92BDd930E
 ```
 
 ---

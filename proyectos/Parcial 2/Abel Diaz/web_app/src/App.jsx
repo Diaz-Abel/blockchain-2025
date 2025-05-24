@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import './App.css';
-import abi from '../../artifacts/contracts/Marketplace.sol/Marketplace.json';
+import abi from './abi/Marketplace.json';
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
 const IPFS_GATEWAY = "https://white-dear-jaguar-287.mypinata.cloud/ipfs/";
@@ -219,7 +219,7 @@ function App() {
     }
   }
 
-  async function mintInitial() {
+  async function mintInitialBatch() {
     if (!account) {
       alert("Debes conectar tu wallet para mintear NFTs.");
       await connectWallet();
@@ -367,7 +367,7 @@ function App() {
             <h2>Mintear NFTs</h2>
             <button 
               className="mint-button" 
-              onClick={mintInitial}
+              onClick={mintInitialBatch}
               disabled={isMinting}
             >
               {isMinting ? '🎨 Minteando...' : '🎨 Mintear Lote NFT'}
