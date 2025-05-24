@@ -3,8 +3,12 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import dotenv from 'dotenv'
 
-// Cargar el .env desde la raíz del proyecto
-dotenv.config({ path: path.resolve(__dirname, '../.env') })
+if (!process.env.VERCEL) {
+  // Solo cargar dotenv si estamos localmente
+  import('dotenv').then(dotenv => {
+    dotenv.config({ path: '../.env' });
+  });
+}
 
 export default defineConfig({
   plugins: [react()],
