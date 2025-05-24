@@ -1,0 +1,104 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract Marketplace is ERC721, Ownable {
+    uint96 public constant MAX_SUPPLY = 1000;
+
+    struct Listing {
+        address seller;
+        uint96 price;
+        bool isSold;
+        string uri;
+    }
+
+    mapping(uint256 => Listing) public listings;
+    mapping(address => uint256) public pendingWithdrawals;
+    mapping(uint256 => string) private _tokenURIs;
+
+    uint256 public listingCount;
+    uint256 private _currentTokenId = 0;
+
+    event ItemListed(uint256 tokenId, address seller, uint96 price);
+    event ItemSold(uint256 tokenId, address buyer, uint96 price);
+    event DebugValueReceived(uint256 value);
+
+    constructor() ERC721("NFT Market", "NFTM") Ownable(msg.sender) {}
+
+     function tokenURI(
+        uint256 tokenId
+    ) public view override returns (string memory) {
+        require(
+            bytes(_tokenURIs[tokenId]).length > 0,
+            "URI query for nonexistent token"
+        );
+        return _tokenURIs[tokenId];
+    }
+
+
+
+    function approveMarketplace() public onlyOwner {
+        setApprovalForAll(address(this), true);
+    }
+
+    function mintAndList(
+        string[] memory _uris,
+        uint96[] memory _prices
+    ) public {
+        uint256 batchLength = _uris.length;
+        require(batchLength > 0, "Empty batch");
+        require(batchLength == _prices.length, "Mismatched inputs");
+        require(
+            _currentTokenId + batchLength <= MAX_SUPPLY,
+            "Max supply exceeded"
+        );
+
+        for (uint256 i = 0; i < batchLength; i++) {
+            uint256 tokenId = _currentTokenId;
+            _mint(address(this), tokenId);
+            _tokenURIs[tokenId] = _uris[i];
+            listings[tokenId] = Listing(msg.sender, _prices[i], false,_uris[i]);
+            emit ItemListed(tokenId, msg.sender, _prices[i]);
+
+            _currentTokenId++;
+            listingCount++;
+        }
+    }
+
+    function buy(uint256 _tokenId) public payable {
+        emit DebugValueReceived(msg.value);
+
+        Listing storage listing = listings[_tokenId];
+        require(listing.price > 0, "NFT no listado");
+        require(!listing.isSold, "Already sold");
+        require(msg.value >= listing.price, "Insufficient funds");
+
+        listing.isSold = true;
+        pendingWithdrawals[listing.seller] += msg.value;
+
+        _safeTransfer(address(this), msg.sender, _tokenId, "");
+
+        emit ItemSold(_tokenId, msg.sender, listing.price);
+    }
+
+    function getListing(
+        uint256 _tokenId
+    ) public view returns (address, uint96, bool, string memory) {
+        Listing memory l = listings[_tokenId];
+        return (l.seller, l.price, l.isSold, l.uri);
+    }
+
+    function getTotalListings() public view returns (uint256) {
+        return listingCount;
+    }
+
+    function withdraw() public {
+        uint256 amount = pendingWithdrawals[msg.sender];
+        require(amount > 0, "Nothing to withdraw");
+
+        pendingWithdrawals[msg.sender] = 0;
+        payable(msg.sender).transfer(amount);
+    }
+}
