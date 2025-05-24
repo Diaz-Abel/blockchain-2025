@@ -1,11 +1,16 @@
 # 🖼️ NFT Marketplace – Proyecto Blockchain FP-UNA 2025
 
-Este proyecto es una aplicación descentralizada (DApp) que permite **listar, comprar y mintear NFTs** utilizando contratos inteligentes en Solidity y una interfaz web construida con React + Vite.
+Este mini-proyecto es una aplicación descentralizada (DApp) que permite **listar, comprar y mintear NFTs** utilizando contratos inteligentes en Solidity y una interfaz web construida con React + Vite.
 
 > ✅ **Contrato desplegado en Ephemery:**  
 > `0x8c547442417dDd339ED6Be936CFF73e92BDd930E`
 
 ---
+## 🎯 Demo en Vivo
+
+Puedes ver y probar el proyecto en vivo aquí:
+
+👉 [Prueba en Vivo - Parcial2](https://parcial2-murex.vercel.app/)
 
 ## ⚙️ Requisitos Previos
 

@@ -14,33 +14,30 @@ function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [pendingBalance, setPendingBalance] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState(Date.now());
-  const [buyingId, setBuyingId] = useState(null); // tokenId que está siendo comprado
+  const [buyingId, setBuyingId] = useState(null); // TokenId que está siendo comprado
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
-
-
 
   // Cargar contrato al inicio
   useEffect(() => {
     loadContract();
   }, []);
 
+  // Cargar NFTs cuando cambia la pestaña a home
   useEffect(() => {
     if (contract && activeTab === 'home') {
       loadMarketItems();
     }
   }, [activeTab]);
-  
 
-  // Cargar NFTs solo cuando cambia el contrato
+  // Cargar NFTs cuando cambia el contrato
   useEffect(() => {
     if (contract) {
       loadMarketItems();
     }
   }, [contract]);
 
-  // Actualizar balance solo cuando cambia la cuenta
+  // Actualizar balance cuando cambia la cuenta
   useEffect(() => {
     if (contract && account) {
       checkMyBalance();
@@ -89,49 +86,26 @@ function App() {
     }
   }
 
-  async function fetchImageFromMetadata(uri) {
-    try {
-      console.log("Fetching metadata from:", uri); // Debug
-      const res = await fetch(uri);
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error(`Invalid content type: ${contentType}`);
-      }
-      const metadata = await res.json();
-      if (!metadata.image) {
-        throw new Error("No image field in metadata");
-      }
-      return metadata.image.replace("ipfs://", IPFS_GATEWAY);
-    } catch (err) {
-      console.error("Error al cargar metadata:", err, "URI:", uri);
-      return null;
-    }
-  }
-
   async function loadMarketItems() {
     try {
       setIsLoading(true);
       const totalBN = await contract.getTotalListings();
       const totalListings = totalBN.toNumber ? totalBN.toNumber() : totalBN;
-  
+
       const promises = [];
       for (let i = 0; i < totalListings; i++) {
         promises.push(loadSingleItem(i));
       }
-  
+
       const itemsList = (await Promise.all(promises)).filter(Boolean);
       setItems(itemsList);
-      setLastUpdate(Date.now());
     } catch (err) {
       console.error("Error al cargar ítems del mercado:", err.message);
     } finally {
       setIsLoading(false);
     }
   }
-  
+
   async function loadSingleItem(id) {
     try {
       const [seller, price, isSold, uri] = await contract.getListing(id);
@@ -144,12 +118,12 @@ function App() {
       return null;
     }
   }
-  
+
   async function fetchMetadata(uri) {
     try {
       const cached = localStorage.getItem(uri);
       if (cached) return JSON.parse(cached);
-  
+
       const res = await fetch(uri);
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const metadata = await res.json();
@@ -160,7 +134,6 @@ function App() {
       return null;
     }
   }
-  
 
   async function purchase(id) {
     if (!account) {
@@ -168,25 +141,24 @@ function App() {
       await connectWallet();
       return;
     }
-  
+
     try {
-      setBuyingId(id); // 🚨 Establecer el ID que se está procesando
-  
+      setBuyingId(id);
+
       const listing = await contract.listings(id);
       const price = listing.price;
-  
+
       const tx = await contract.buy(id, { value: price });
       await tx.wait();
-  
+
       await loadMarketItems();
     } catch (err) {
-      console.error("❌ Error en la compra:", err);
+      console.error("Error en la compra:", err);
       alert(`Error: ${err.reason || err.message}`);
     } finally {
-      setBuyingId(null); // ✅ Restablecer el estado
+      setBuyingId(null);
     }
   }
-  
 
   async function withdrawFunds() {
     if (!account) {
@@ -245,10 +217,9 @@ function App() {
       setIsMinting(true);
       const tx = await contract.mintAndList(uris, prices);
       await tx.wait();
-      await tx.wait();
       setTimeout(() => {
         setActiveTab('home');
-        loadMarketItems(); // para que realmente recargue al volver
+        loadMarketItems(); // Recargar NFTs al volver
       }, 1000);
     } catch (err) {
       console.warn("Error al mintear:", err.message);
@@ -276,19 +247,19 @@ function App() {
           </div>
         </div>
         <nav className="main-nav">
-          <button 
+          <button
             className={`nav-button ${activeTab === 'home' ? 'active' : ''}`}
             onClick={() => setActiveTab('home')}
           >
             🏠 Inicio
           </button>
-          <button 
+          <button
             className={`nav-button ${activeTab === 'mint' ? 'active' : ''}`}
             onClick={() => setActiveTab('mint')}
           >
             🎨 Mintear
           </button>
-          <button 
+          <button
             className={`nav-button ${activeTab === 'funds' ? 'active' : ''}`}
             onClick={() => setActiveTab('funds')}
           >
@@ -314,7 +285,7 @@ function App() {
           <>
             <div className="marketplace-header">
               <h2>NFTs Disponibles</h2>
-              <button 
+              <button
                 className="refresh-button"
                 onClick={loadMarketItems}
                 disabled={isLoading}
@@ -326,7 +297,7 @@ function App() {
               <div className="empty-state">
                 <h2>No hay NFTs listados</h2>
                 <p>🎨 ¡Mintea los NFTs para empezar!</p>
-                <button 
+                <button
                   className="mint-button"
                   onClick={() => setActiveTab('mint')}
                 >
@@ -342,18 +313,17 @@ function App() {
                       <h3>{metadata?.name || `NFT #${id}`}</h3>
                       <p className="nft-description">{metadata?.description}</p>
                       <p className="nft-price">Precio: {ethers.formatEther(price)} ETH</p>
-                      <button 
-                      className={`buy-button ${isSold ? 'sold' : ''}`}
-                      onClick={() => purchase(id)} 
-                      disabled={isSold || buyingId === id}
-                    >
-                      {isSold
-                        ? 'Vendido'
-                        : buyingId === id
-                          ? 'Procesando...'
-                          : 'Comprar'}
-                    </button>
-
+                      <button
+                        className={`buy-button ${isSold ? 'sold' : ''}`}
+                        onClick={() => purchase(id)}
+                        disabled={isSold || buyingId === id}
+                      >
+                        {isSold
+                          ? 'Vendido'
+                          : buyingId === id
+                            ? 'Procesando...'
+                            : 'Comprar'}
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -365,8 +335,8 @@ function App() {
         {activeTab === 'mint' && (
           <div className="mint-section">
             <h2>Mintear NFTs</h2>
-            <button 
-              className="mint-button" 
+            <button
+              className="mint-button"
               onClick={mintInitialBatch}
               disabled={isMinting}
             >
@@ -380,8 +350,8 @@ function App() {
             <h2>Mis Fondos</h2>
             <div className="balance-info">
               <p>Saldo pendiente: {pendingBalance} ETH</p>
-              <button 
-                className="withdraw-button" 
+              <button
+                className="withdraw-button"
                 onClick={withdrawFunds}
                 disabled={isWithdrawing}
               >
